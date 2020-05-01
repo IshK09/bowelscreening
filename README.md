@@ -12,3 +12,5 @@ Plot of the actual and fitted values
 
 Forecasts
 ![](forecast.png)
+
+The output can also be downloaded from [here](https://github.com/IshK09/bowelscreening/blob/master/Bowel-Screen-Time-Series.html.zip)
