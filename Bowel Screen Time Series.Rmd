@@ -1,0 +1,155 @@
+---
+title: "Data Science Task"
+author: "Ishwinder Kaur"
+date: May 1, 2020
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: paper
+    toc_float: true
+    number_sections: true
+    self_contained: yes
+    highlight: pygments
+    code_folding: hide
+---
+
+# Introduction
+
+This R markdown demonstrates predictive analysis for time series data.
+For this analysis we use the <b> Bowel Cancer Screening dataset.</b>
+
+```{r warning=F, message=F, error=F}
+
+#loading the relevant libraries
+library(tidyverse)
+#library(ts)
+library(ggplot2)
+library(forecast)
+
+options(scipen = 999)
+
+kLightBlue = "#00AAE5"
+kDarkBlue = "#005AAD"
+kPurple = "#A33299"
+
+
+```
+
+# About the dataset 
+
+This dataset is taken from the data provided as part of the <b>National Bowel Cancer Screening Program</b>. The data consists of number of screening kits returned, by sex and quarter, people aged 50–74, 1 Jan–31 Mar 2014 to 1 Apr–30 Jun 2019.
+
+Link: https://www.aihw.gov.au/reports/cancer-screening/national-cancer-screening-programs-participation/data
+
+For the purpose of this analysis, we will use the total number of persons.
+
+```{r}
+
+# about the dataset:
+
+bowel = readxl::read_xlsx('bowel screening data.xlsx')
+
+# converting bowel screen dataset into a timeseries
+bowel_ts <- ts(bowel[,'Persons'], start=2014, frequency=4)
+
+# plotting the time series
+autoplot(bowel_ts) +
+  ggtitle("Bowel Screening Kits returned") +
+  xlab("Year") +
+  ylab("Number of screens") +
+  scale_y_continuous(labels = scales::comma) +
+  theme_minimal() +
+  theme_bw()
+
+```
+
+# Main model and forecasts
+
+The first model is a linear model. 
+
+Below is the summary of the model:
+
+```{r}
+fit.cancer <- tslm(bowel_ts ~ trend + season)
+summary(fit.cancer)
+
+```
+
+
+## Plot of the actual and fitted values
+
+Below is a plot of the actual versus fitted values.
+
+```{r}
+cbind(Time = time(bowel_ts), Actuals=bowel_ts, Fitted=fitted(fit.cancer)) %>%
+  as.data.frame() %>%
+  gather(key = 'Type', value = 'value', -Time) %>% 
+  ggplot(aes(x = Time, 
+             y = value,
+             colour = as.factor(Type) )) +
+  ggtitle("Bowel Screening Kits returned/forecasts") +
+  geom_point() +
+  geom_line() +
+  ylab("Actual/Fitted") + xlab("Time") +
+  ggtitle("Quarterly bowel screen kits returned") +
+  theme_bw() +
+  theme_classic() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = c(0.2, 0.85)
+  ) +
+  scale_y_continuous(limits = c(0,500000), expand = c(0,0), labels = scales::comma)
+#  scale_colour_brewer(palette="Dark2", name="Quarter") +
+#  geom_abline(intercept=0, slope=1) 
+  
+```
+
+## Forecasts 
+
+Following are the forecasts for the model created above for the 10 quarters starting from 2019 Q3 to 2021 Q4.
+
+```{r}
+fcast <- forecast(fit.cancer)
+autoplot(fcast) +
+  ggtitle("Forecasts of bowel screens") +
+  xlab("Time") + ylab("Number of screens") +
+  ggtitle("Quarterly bowel screen kits returned with forecasts") +
+  theme_bw() +
+  theme_classic() +
+  scale_y_continuous(limits = c(0,500000), expand = c(0,0), labels = scales::comma)
+
+
+```
+
+## Accuracy
+
+Accuracy of the main model is as follows:
+
+```{r}
+accuracy(fcast)
+```
+
+
+# Other models
+
+##  Alternative model 1
+
+Alternative Model 1: Exponential smoothing
+
+```{r}
+
+fc1 = ses(bowel_ts, h = 4)
+round(accuracy(fc1),2)
+```
+
+##  Alternative model 2
+
+Alternative Model 2: Forecasting with Holt’s Method
+
+```{r}
+fc2 = holt(bowel_ts, h = 2)
+round(accuracy(fc2),2)
+```
+
+In comparison to the alternative models, the first model still has higher accuracy and lower RMSE.
