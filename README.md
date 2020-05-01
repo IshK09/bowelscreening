@@ -6,4 +6,11 @@ A copy of that [data](https://github.com/IshK09/bowelscreening/blob/master/bowel
 
 The code is located in the file [Bowel Screen Time Series.Rmd](https://github.com/IshK09/bowelscreening/blob/master/Bowel%20Screen%20Time%20Series.Rmd)
 
-The output of the analysis is available in [Bowel-Screen-Time-Series.html](https://github.com/IshK09/bowelscreening/blob/master/Bowel-Screen-Time-Series.html)
+We see how many tests were performed over the years
+![](initial.png)
+
+Plot of the actual and fitted values
+![](actualfitted.png)
+
+Forecasts
+![](forecast.png)
